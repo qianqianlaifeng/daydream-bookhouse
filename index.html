@@ -1,0 +1,624 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#11182b" />
+  <meta name="description" content="白日梦书屋，本地优先的 AI 小说创作工作台。从灵感、设定、章节蓝图到正文、审稿与修稿，让故事一路向前。" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%2311182b'/%3E%3Cpath d='M12 18c8-3 15-1 20 4v28c-5-5-12-7-20-4V18Zm40 0c-8-3-15-1-20 4v28c5-5 12-7 20-4V18Z' fill='%23f4e9d2'/%3E%3Cpath d='M32 22v28' stroke='%23d97967' stroke-width='4'/%3E%3Cpath d='M43 10a8 8 0 1 0 8 11 7 7 0 0 1-8-11Z' fill='%23ecbe69'/%3E%3C/svg%3E" />
+  <title>白日梦书屋 · 让灵感成书</title>
+  <style>
+    :root {
+      --bg: #0d1323;
+      --bg-soft: #121a2e;
+      --surface: #171f35;
+      --surface-2: #1c2740;
+      --paper: #f4e9d2;
+      --text: #f7f4ec;
+      --muted: #aab4c9;
+      --faint: #74809a;
+      --accent: #ecbe69;
+      --accent-2: #d97967;
+      --line: rgba(244, 233, 210, 0.12);
+      --success: #83d5b0;
+      --radius: 18px;
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.34);
+      --max: 1180px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 90px; }
+    body {
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 14% 8%, rgba(217, 121, 103, 0.13), transparent 28rem),
+        radial-gradient(circle at 86% 18%, rgba(236, 190, 105, 0.10), transparent 30rem),
+        var(--bg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.65;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.28;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.08'/%3E%3C/svg%3E");
+      z-index: 20;
+      mix-blend-mode: soft-light;
+    }
+    a { color: inherit; text-decoration: none; }
+    button, input { font: inherit; }
+    button { color: inherit; }
+    svg { display: block; }
+    ::selection { background: rgba(236, 190, 105, 0.3); color: #fff; }
+    :focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
+    .container { width: min(var(--max), calc(100% - 40px)); margin-inline: auto; }
+    .skip-link { position: fixed; top: -80px; left: 20px; z-index: 100; padding: 12px 18px; border-radius: 10px; background: var(--accent); color: #172033; }
+    .skip-link:focus { top: 16px; }
+
+    .site-header {
+      position: fixed;
+      inset: 0 0 auto;
+      z-index: 50;
+      border-bottom: 1px solid transparent;
+      transition: background 220ms ease, border-color 220ms ease, backdrop-filter 220ms ease;
+    }
+    .site-header.is-scrolled {
+      background: rgba(13, 19, 35, 0.82);
+      border-color: var(--line);
+      backdrop-filter: blur(18px);
+    }
+    .nav { display: flex; align-items: center; justify-content: space-between; min-height: 76px; gap: 24px; }
+    .brand { display: inline-flex; align-items: center; gap: 12px; font-weight: 750; letter-spacing: 0.02em; }
+    .brand-icon { width: 38px; height: 38px; filter: drop-shadow(0 8px 18px rgba(236, 190, 105, 0.16)); }
+    .nav-links { display: flex; align-items: center; gap: 30px; color: var(--muted); font-size: 14px; }
+    .nav-links a { transition: color 180ms ease; }
+    .nav-links a:hover { color: var(--text); }
+    .nav-actions { display: flex; align-items: center; gap: 12px; }
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      min-height: 46px;
+      padding: 0 20px;
+      border: 1px solid transparent;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      transition: transform 180ms ease, background 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+    }
+    .button:hover { transform: translateY(-2px); }
+    .button-primary { background: var(--accent); color: #172033; box-shadow: 0 12px 30px rgba(236, 190, 105, 0.18); }
+    .button-primary:hover { background: #f4cd83; box-shadow: 0 16px 36px rgba(236, 190, 105, 0.24); }
+    .button-secondary { border-color: var(--line); background: rgba(255, 255, 255, 0.035); color: var(--text); }
+    .button-secondary:hover { border-color: rgba(244, 233, 210, 0.28); background: rgba(255, 255, 255, 0.07); }
+    .button-small { min-height: 40px; padding-inline: 15px; border-radius: 10px; font-size: 13px; }
+    .menu-button { display: none; width: 44px; height: 44px; border: 1px solid var(--line); border-radius: 12px; background: transparent; align-items: center; justify-content: center; }
+
+    .hero { position: relative; min-height: 100vh; display: flex; align-items: center; padding: 140px 0 90px; isolation: isolate; }
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 620px;
+      height: 620px;
+      right: -220px;
+      top: 10%;
+      z-index: -1;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(236, 190, 105, 0.09), transparent 67%);
+      animation: breathe 8s ease-in-out infinite;
+    }
+    .hero-grid { display: grid; grid-template-columns: 1.04fr 0.96fr; align-items: center; gap: 64px; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 9px; color: var(--accent); font-size: 13px; font-weight: 750; letter-spacing: 0.12em; text-transform: uppercase; }
+    .eyebrow::before { content: ""; width: 22px; height: 1px; background: currentColor; }
+    .hero h1 { margin: 18px 0 22px; font-size: clamp(44px, 6vw, 76px); line-height: 1.08; letter-spacing: -0.055em; }
+    .hero h1 span { color: var(--accent); }
+    .hero-copy { max-width: 610px; margin: 0; color: var(--muted); font-size: clamp(16px, 1.6vw, 19px); line-height: 1.8; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 32px; }
+    .hero-note { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 20px; color: var(--faint); font-size: 12px; }
+    .hero-note span { display: inline-flex; align-items: center; gap: 7px; }
+    .hero-note svg { color: var(--success); }
+    .hero-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 44px; max-width: 570px; }
+    .metric { padding: 15px 16px; border: 1px solid var(--line); border-radius: 14px; background: rgba(255, 255, 255, 0.025); }
+    .metric strong { display: block; color: var(--paper); font-size: 15px; }
+    .metric span { color: var(--faint); font-size: 12px; }
+
+    .hero-visual { position: relative; min-height: 560px; perspective: 1200px; }
+    .orbit { position: absolute; inset: 8% 2% 4%; border: 1px solid rgba(244, 233, 210, 0.08); border-radius: 50%; transform: rotate(-12deg); }
+    .orbit::before, .orbit::after { content: ""; position: absolute; border-radius: 50%; background: var(--accent); box-shadow: 0 0 24px rgba(236, 190, 105, 0.7); }
+    .orbit::before { width: 7px; height: 7px; left: 8%; top: 18%; animation: twinkle 3s ease-in-out infinite; }
+    .orbit::after { width: 5px; height: 5px; right: 5%; bottom: 24%; animation: twinkle 4s ease-in-out infinite reverse; }
+    .moon { position: absolute; width: 94px; height: 94px; right: 3%; top: 2%; border-radius: 50%; background: var(--accent); box-shadow: 0 0 70px rgba(236, 190, 105, 0.24); animation: float 7s ease-in-out infinite; }
+    .moon::after { content: ""; position: absolute; width: 86px; height: 86px; left: 27px; top: -11px; border-radius: 50%; background: var(--bg); }
+    .book-stage { position: absolute; inset: 14% 0 0; display: grid; place-items: center; transform-style: preserve-3d; animation: float 8s ease-in-out infinite reverse; }
+    .book {
+      position: relative;
+      width: min(420px, 86%);
+      height: 300px;
+      transform: rotateX(54deg) rotateZ(-24deg);
+      transform-style: preserve-3d;
+      filter: drop-shadow(0 40px 40px rgba(0, 0, 0, 0.38));
+    }
+    .book-cover { position: absolute; inset: 0; border-radius: 16px 26px 26px 16px; background: linear-gradient(135deg, #263452, #172138); border: 1px solid rgba(244, 233, 210, 0.18); transform: translateZ(-18px); }
+    .book-pages { position: absolute; inset: 10px 12px 12px 10px; border-radius: 12px 22px 22px 12px; background: repeating-linear-gradient(0deg, #e7d9bd 0 3px, #f4e9d2 3px 6px); transform: translateZ(-8px); box-shadow: 8px 10px 0 #b8a88b, 10px 14px 0 #d8c7a8; }
+    .book-left, .book-right { position: absolute; top: 0; width: 50%; height: 100%; background: linear-gradient(160deg, #fff7e6, #e6d6b8); color: #344056; }
+    .book-left { left: 0; border-radius: 16px 4px 8px 16px; transform-origin: right center; transform: rotateY(12deg); clip-path: polygon(0 0, 100% 5%, 100% 96%, 0 100%); }
+    .book-right { right: 0; border-radius: 4px 26px 16px 4px; transform-origin: left center; transform: rotateY(-12deg); clip-path: polygon(0 5%, 100% 0, 100% 100%, 0 96%); }
+    .book-left::after, .book-right::after { content: ""; position: absolute; inset: 44px 30px; background: repeating-linear-gradient(0deg, rgba(52, 64, 86, 0.23) 0 2px, transparent 2px 15px); opacity: 0.6; }
+    .book-spine { position: absolute; left: 50%; top: 0; bottom: 0; width: 5px; transform: translateX(-50%) translateZ(8px); background: var(--accent-2); border-radius: 4px; }
+    .bookmark { position: absolute; width: 28px; height: 78px; left: 54%; top: -4px; background: var(--accent-2); clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%); transform: translateZ(18px) rotateZ(24deg); }
+    .floating-card { position: absolute; z-index: 3; padding: 14px 16px; border: 1px solid var(--line); border-radius: 14px; background: rgba(23, 31, 53, 0.86); box-shadow: var(--shadow); backdrop-filter: blur(16px); animation: float 6s ease-in-out infinite; }
+    .floating-card small { display: block; color: var(--faint); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; }
+    .floating-card strong { display: block; margin-top: 3px; color: var(--paper); font-size: 13px; }
+    .card-one { left: -3%; top: 19%; }
+    .card-two { right: -2%; top: 46%; animation-delay: -2s; }
+    .card-three { left: 8%; bottom: 3%; animation-delay: -4s; }
+
+    .scroll-cue { position: absolute; left: 50%; bottom: 24px; transform: translateX(-50%); color: var(--faint); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; }
+    .scroll-cue::after { content: ""; display: block; width: 1px; height: 28px; margin: 10px auto 0; background: linear-gradient(var(--accent), transparent); animation: scrollLine 2s ease-in-out infinite; }
+
+    .section { padding: 110px 0; position: relative; }
+    .section-head { display: flex; align-items: end; justify-content: space-between; gap: 28px; margin-bottom: 44px; }
+    .section-head h2 { margin: 12px 0 0; font-size: clamp(32px, 4vw, 50px); line-height: 1.15; letter-spacing: -0.04em; }
+    .section-head p { max-width: 480px; margin: 0; color: var(--muted); }
+    .feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .feature-card { position: relative; min-height: 260px; padding: 28px; overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); background: linear-gradient(145deg, rgba(255,255,255,0.045), rgba(255,255,255,0.015)); transition: transform 220ms ease, border-color 220ms ease, background 220ms ease; }
+    .feature-card:hover { transform: translateY(-6px); border-color: rgba(236, 190, 105, 0.35); background: linear-gradient(145deg, rgba(236, 190, 105, 0.07), rgba(255,255,255,0.02)); }
+    .feature-icon { display: grid; place-items: center; width: 46px; height: 46px; margin-bottom: 24px; border: 1px solid rgba(236, 190, 105, 0.2); border-radius: 13px; background: rgba(236, 190, 105, 0.08); color: var(--accent); }
+    .feature-card h3 { margin: 0 0 10px; font-size: 20px; }
+    .feature-card p { margin: 0; color: var(--muted); font-size: 14px; }
+    .feature-number { position: absolute; right: 22px; top: 18px; color: rgba(244, 233, 210, 0.08); font-size: 52px; font-weight: 800; line-height: 1; }
+
+    .workflow { background: linear-gradient(180deg, transparent, rgba(236, 190, 105, 0.025), transparent); }
+    .workflow-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; counter-reset: step; }
+    .step { position: relative; padding: 26px 20px; border-top: 1px solid var(--line); }
+    .step::before { counter-increment: step; content: "0" counter(step); display: block; margin-bottom: 34px; color: var(--accent); font-size: 13px; font-weight: 800; letter-spacing: 0.12em; }
+    .step:not(:last-child)::after { content: ""; position: absolute; width: 6px; height: 6px; right: -3px; top: -4px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 16px rgba(236, 190, 105, 0.6); }
+    .step h3 { margin: 0 0 8px; font-size: 17px; }
+    .step p { margin: 0; color: var(--muted); font-size: 13px; }
+
+    .showcase { display: grid; grid-template-columns: 0.9fr 1.1fr; align-items: center; gap: 70px; }
+    .showcase-copy h2 { margin: 12px 0 20px; font-size: clamp(34px, 4.5vw, 56px); line-height: 1.12; letter-spacing: -0.045em; }
+    .showcase-copy p { color: var(--muted); }
+    .check-list { display: grid; gap: 13px; margin: 26px 0 0; padding: 0; list-style: none; }
+    .check-list li { display: flex; align-items: flex-start; gap: 11px; color: var(--paper); font-size: 14px; }
+    .check-list svg { flex: 0 0 auto; margin-top: 4px; color: var(--success); }
+    .app-window { overflow: hidden; border: 1px solid rgba(244, 233, 210, 0.16); border-radius: 20px; background: #101728; box-shadow: var(--shadow); transform: perspective(1100px) rotateY(-5deg) rotateX(2deg); }
+    .window-bar { display: flex; align-items: center; justify-content: space-between; height: 46px; padding: 0 16px; border-bottom: 1px solid var(--line); background: #151e33; color: var(--faint); font-size: 11px; }
+    .window-dots { display: flex; gap: 6px; }
+    .window-dots i { width: 8px; height: 8px; border-radius: 50%; background: #d97967; }
+    .window-dots i:nth-child(2) { background: #ecbe69; }
+    .window-dots i:nth-child(3) { background: #83d5b0; }
+    .window-body { display: grid; grid-template-columns: 150px 1fr; min-height: 390px; }
+    .window-sidebar { padding: 18px 12px; border-right: 1px solid var(--line); background: #131b2f; }
+    .window-logo { display: flex; align-items: center; gap: 8px; margin-bottom: 26px; color: var(--paper); font-size: 12px; font-weight: 750; }
+    .window-logo svg { color: var(--accent); }
+    .window-nav { display: grid; gap: 7px; }
+    .window-nav span { padding: 8px 9px; border-radius: 7px; color: var(--faint); font-size: 10px; }
+    .window-nav span.active { background: rgba(236, 190, 105, 0.1); color: var(--accent); }
+    .window-editor { padding: 24px 28px; }
+    .editor-kicker { color: var(--faint); font-size: 10px; }
+    .editor-title { margin: 7px 0 18px; color: var(--paper); font-size: 18px; font-weight: 700; }
+    .typing { min-height: 210px; color: #cbd2df; font-family: "Songti SC", "Noto Serif CJK SC", serif; font-size: 13px; line-height: 2; white-space: pre-wrap; }
+    .typing::after { content: ""; display: inline-block; width: 2px; height: 15px; margin-left: 3px; vertical-align: -2px; background: var(--accent); animation: blink 1s steps(1) infinite; }
+    .editor-status { display: flex; align-items: center; justify-content: space-between; margin-top: 18px; padding-top: 13px; border-top: 1px solid var(--line); color: var(--faint); font-size: 10px; }
+    .editor-status span:first-child { color: var(--success); }
+
+    .guide-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .guide-card { padding: 24px; border: 1px solid var(--line); border-radius: 16px; background: rgba(255,255,255,0.025); }
+    .guide-card .step-no { display: inline-grid; place-items: center; width: 32px; height: 32px; margin-bottom: 20px; border-radius: 9px; background: rgba(236, 190, 105, 0.1); color: var(--accent); font-size: 12px; font-weight: 800; }
+    .guide-card h3 { margin: 0 0 8px; font-size: 17px; }
+    .guide-card p { margin: 0; color: var(--muted); font-size: 13px; }
+
+    .privacy { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .privacy-card { padding: 34px; border: 1px solid var(--line); border-radius: var(--radius); background: linear-gradient(145deg, rgba(131, 213, 176, 0.06), rgba(255,255,255,0.015)); }
+    .privacy-card.copyright { background: linear-gradient(145deg, rgba(217, 121, 103, 0.07), rgba(255,255,255,0.015)); }
+    .privacy-card svg { margin-bottom: 20px; color: var(--success); }
+    .privacy-card.copyright svg { color: var(--accent-2); }
+    .privacy-card h3 { margin: 0 0 12px; font-size: 21px; }
+    .privacy-card p { margin: 0; color: var(--muted); font-size: 14px; }
+
+    .faq { max-width: 860px; margin-inline: auto; }
+    .faq details { border-bottom: 1px solid var(--line); }
+    .faq summary { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 24px 0; cursor: pointer; list-style: none; font-size: 17px; font-weight: 650; }
+    .faq summary::-webkit-details-marker { display: none; }
+    .faq summary::after { content: "+"; color: var(--accent); font-size: 24px; font-weight: 400; transition: transform 180ms ease; }
+    .faq details[open] summary::after { transform: rotate(45deg); }
+    .faq details p { margin: -4px 0 24px; color: var(--muted); }
+
+    .download-section { padding: 90px 0 110px; }
+    .download-panel { position: relative; overflow: hidden; padding: 60px; border: 1px solid rgba(236, 190, 105, 0.22); border-radius: 28px; background: linear-gradient(135deg, rgba(236, 190, 105, 0.1), rgba(217, 121, 103, 0.05)); text-align: center; }
+    .download-panel::before, .download-panel::after { content: ""; position: absolute; border-radius: 50%; filter: blur(4px); opacity: 0.6; }
+    .download-panel::before { width: 240px; height: 240px; left: -90px; top: -120px; background: radial-gradient(circle, rgba(217,121,103,0.18), transparent 70%); }
+    .download-panel::after { width: 260px; height: 260px; right: -100px; bottom: -140px; background: radial-gradient(circle, rgba(236,190,105,0.16), transparent 70%); }
+    .download-panel h2 { margin: 0 0 14px; font-size: clamp(32px, 4vw, 48px); letter-spacing: -0.04em; }
+    .download-panel p { max-width: 640px; margin: 0 auto 28px; color: var(--muted); }
+    .download-panel .button { min-width: 210px; }
+    .download-status { display: inline-flex; align-items: center; gap: 8px; margin-top: 16px; color: var(--faint); font-size: 12px; }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 12px rgba(236,190,105,0.6); animation: pulse 2s ease-in-out infinite; }
+
+    .footer { padding: 34px 0; border-top: 1px solid var(--line); color: var(--faint); font-size: 12px; }
+    .footer-row { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .footer-brand { display: flex; align-items: center; gap: 9px; color: var(--paper); font-weight: 700; }
+    .footer-brand svg { color: var(--accent); }
+    .footer a:hover { color: var(--paper); }
+    .back-top { position: fixed; right: 22px; bottom: 22px; z-index: 40; display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid var(--line); border-radius: 13px; background: rgba(23,31,53,0.88); color: var(--paper); opacity: 0; visibility: hidden; transform: translateY(10px); transition: opacity 180ms ease, transform 180ms ease, visibility 180ms ease; backdrop-filter: blur(12px); }
+    .back-top.is-visible { opacity: 1; visibility: visible; transform: translateY(0); }
+
+    dialog { width: min(480px, calc(100% - 32px)); padding: 0; border: 1px solid var(--line); border-radius: 20px; background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+    dialog::backdrop { background: rgba(4,8,17,0.72); backdrop-filter: blur(8px); }
+    .dialog-inner { padding: 30px; }
+    .dialog-icon { display: grid; place-items: center; width: 52px; height: 52px; margin-bottom: 20px; border-radius: 15px; background: rgba(236,190,105,0.1); color: var(--accent); }
+    .dialog-inner h2 { margin: 0 0 12px; font-size: 23px; }
+    .dialog-inner p { margin: 0 0 24px; color: var(--muted); }
+    .dialog-actions { display: flex; justify-content: flex-end; gap: 10px; }
+
+    .reveal { opacity: 0; transform: translateY(22px); transition: opacity 650ms ease, transform 650ms cubic-bezier(.2,.8,.2,1); }
+    .reveal.is-visible { opacity: 1; transform: translateY(0); }
+    .reveal-delay-1 { transition-delay: 80ms; }
+    .reveal-delay-2 { transition-delay: 160ms; }
+    .reveal-delay-3 { transition-delay: 240ms; }
+
+    @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+    @keyframes breathe { 0%,100% { transform: scale(1); opacity: .7; } 50% { transform: scale(1.08); opacity: 1; } }
+    @keyframes twinkle { 0%,100% { opacity: .35; transform: scale(.8); } 50% { opacity: 1; transform: scale(1.25); } }
+    @keyframes blink { 0%,45% { opacity: 1; } 46%,100% { opacity: 0; } }
+    @keyframes pulse { 0%,100% { opacity: .5; } 50% { opacity: 1; } }
+    @keyframes scrollLine { 0%,100% { transform: scaleY(.4); transform-origin: top; } 50% { transform: scaleY(1); transform-origin: top; } }
+
+    @media (max-width: 1024px) {
+      .hero-grid { gap: 34px; }
+      .hero-visual { min-height: 480px; }
+      .feature-grid { grid-template-columns: repeat(2, 1fr); }
+      .workflow-grid { grid-template-columns: repeat(3, 1fr); }
+      .step:nth-child(3)::after { display: none; }
+      .guide-grid { grid-template-columns: repeat(2, 1fr); }
+      .showcase { gap: 38px; }
+    }
+    @media (max-width: 820px) {
+      .nav-links { display: none; position: absolute; left: 20px; right: 20px; top: 70px; padding: 16px; border: 1px solid var(--line); border-radius: 16px; background: rgba(17,24,43,0.97); box-shadow: var(--shadow); }
+      .nav-links.is-open { display: grid; gap: 4px; }
+      .nav-links a { padding: 11px 12px; border-radius: 9px; }
+      .nav-links a:hover { background: rgba(255,255,255,0.05); }
+      .menu-button { display: inline-flex; }
+      .nav-actions .button { display: none; }
+      .hero { padding-top: 120px; }
+      .hero-grid { grid-template-columns: 1fr; }
+      .hero-copy { max-width: 680px; }
+      .hero-visual { min-height: 470px; width: min(560px, 100%); margin-inline: auto; }
+      .section { padding: 82px 0; }
+      .section-head { align-items: start; flex-direction: column; }
+      .showcase { grid-template-columns: 1fr; }
+      .app-window { transform: none; }
+      .privacy { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) {
+      .container { width: min(100% - 28px, var(--max)); }
+      .nav { min-height: 68px; }
+      .brand { font-size: 14px; }
+      .brand-icon { width: 34px; height: 34px; }
+      .hero { min-height: auto; padding: 112px 0 70px; }
+      .hero h1 { font-size: clamp(40px, 13vw, 58px); }
+      .hero-actions { flex-direction: column; }
+      .hero-actions .button { width: 100%; }
+      .hero-metrics { grid-template-columns: 1fr; }
+      .metric { display: flex; align-items: center; justify-content: space-between; }
+      .hero-visual { min-height: 390px; }
+      .book { width: 300px; height: 220px; }
+      .moon { width: 72px; height: 72px; }
+      .moon::after { width: 66px; height: 66px; left: 21px; }
+      .floating-card { padding: 10px 12px; }
+      .card-one { left: 0; }
+      .card-two { right: 0; }
+      .scroll-cue { display: none; }
+      .feature-grid, .workflow-grid, .guide-grid { grid-template-columns: 1fr; }
+      .step:not(:last-child)::after { display: none; }
+      .feature-card { min-height: 230px; }
+      .window-body { grid-template-columns: 1fr; }
+      .window-sidebar { display: none; }
+      .window-editor { padding: 20px; }
+      .download-panel { padding: 42px 22px; }
+      .footer-row { align-items: flex-start; flex-direction: column; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+      .reveal { opacity: 1; transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到主要内容</a>
+  <header class="site-header" id="siteHeader">
+    <nav class="nav container" aria-label="主导航">
+      <a class="brand" href="#top" aria-label="白日梦书屋首页">
+        <svg class="brand-icon" viewBox="0 0 64 64" aria-hidden="true">
+          <rect x="2" y="2" width="60" height="60" rx="16" fill="#171f35" stroke="#39445e"/>
+          <path d="M12 18c8-3 15-1 20 4v28c-5-5-12-7-20-4V18Zm40 0c-8-3-15-1-20 4v28c5-5 12-7 20-4V18Z" fill="#f4e9d2"/>
+          <path d="M32 22v28" stroke="#d97967" stroke-width="4"/>
+          <path d="M43 10a8 8 0 1 0 8 11 7 7 0 0 1-8-11Z" fill="#ecbe69"/>
+        </svg>
+        <span>白日梦书屋</span>
+      </a>
+      <div class="nav-links" id="navLinks">
+        <a href="#features">核心能力</a>
+        <a href="#workflow">写作流程</a>
+        <a href="#guide">使用教程</a>
+        <a href="#faq">常见问题</a>
+      </div>
+      <div class="nav-actions">
+        <button class="button button-primary button-small" type="button" data-open-download>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M5 21h14"/></svg>
+          下载软件
+        </button>
+        <button class="menu-button" id="menuButton" type="button" aria-label="打开导航菜单" aria-expanded="false" aria-controls="navLinks">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="hero" id="top">
+      <div class="container hero-grid">
+        <div class="hero-content">
+          <span class="eyebrow">本地优先 · AI 原生 · 长篇友好</span>
+          <h1>让灵感成书，<br /><span>让故事一路向前。</span></h1>
+          <p class="hero-copy">从一句模糊的想法，到设定、章节蓝图、正文、审稿与修稿。白日梦书屋把 AI 智能体、长篇连续性账本和写作技能装进一个安静的创作空间。</p>
+          <div class="hero-actions">
+            <button class="button button-primary" type="button" data-open-download>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M5 21h14"/></svg>
+              下载 Windows 版
+            </button>
+            <a class="button button-secondary" href="#guide">
+              查看使用教程
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+            </a>
+          </div>
+          <div class="hero-note">
+            <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>无需登录注册</span>
+            <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>作品仅存本地</span>
+            <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>模型由你配置</span>
+          </div>
+          <div class="hero-metrics">
+            <div class="metric"><strong>长篇连续性</strong><span>人物、伏笔、时间线</span></div>
+            <div class="metric"><strong>统一技能中心</strong><span>规则、智能体、导入技能</span></div>
+            <div class="metric"><strong>自定义模型</strong><span>兼容服务与本地模型</span></div>
+          </div>
+        </div>
+
+        <div class="hero-visual" aria-hidden="true">
+          <div class="orbit"></div>
+          <div class="moon"></div>
+          <div class="book-stage">
+            <div class="book">
+              <div class="book-cover"></div>
+              <div class="book-pages"></div>
+              <div class="book-left"></div>
+              <div class="book-right"></div>
+              <div class="book-spine"></div>
+              <div class="bookmark"></div>
+            </div>
+          </div>
+          <div class="floating-card card-one"><small>Continuity</small><strong>人物状态已同步</strong></div>
+          <div class="floating-card card-two"><small>Foreshadowing</small><strong>本章 2 条伏笔待推进</strong></div>
+          <div class="floating-card card-three"><small>Writing Skill</small><strong>自然语言润色</strong></div>
+        </div>
+      </div>
+      <a class="scroll-cue" href="#features">向下探索</a>
+    </section>
+
+    <section class="section" id="features">
+      <div class="container">
+        <div class="section-head reveal">
+          <div><span class="eyebrow">核心能力</span><h2>不只帮你写，<br />也帮你把故事写完整。</h2></div>
+          <p>AI 负责起草与检查，你始终掌握最终决定。每一次修改都清晰可见，每一部作品都保存在自己的电脑里。</p>
+        </div>
+        <div class="feature-grid">
+          <article class="feature-card reveal"><span class="feature-number">01</span><div class="feature-icon"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 19V5a2 2 0 0 1 2-2h13v18H6a2 2 0 0 1-2-2Zm0 0a2 2 0 0 1 2-2h13M8 7h7M8 11h5"/></svg></div><h3>从设定到定稿</h3><p>故事前提、世界观、人物、章节蓝图、正文、审稿与修稿形成完整流程，不必在多个工具之间来回切换。</p></article>
+          <article class="feature-card reveal reveal-delay-1"><span class="feature-number">02</span><div class="feature-icon"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><h3>长篇连续性账本</h3><p>人物状态按章取值，伏笔按到期章节提醒，时间线与关系变化有据可查，减少越写越矛盾的问题。</p></article>
+          <article class="feature-card reveal reveal-delay-2"><span class="feature-number">03</span><div class="feature-icon"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="m12 3 2.2 6.8H21l-5.5 4 2.1 6.7-5.6-4-5.6 4 2.1-6.7-5.5-4h6.8L12 3Z"/></svg></div><h3>统一技能中心</h3><p>内置写作技能、智能体、子智能体与导入的 SKILL.md 集中管理，按规划、写稿、审稿和修稿阶段调用。</p></article>
+          <article class="feature-card reveal"><span class="feature-number">04</span><div class="feature-icon"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/><circle cx="18" cy="17" r="2"/></svg></div><h3>模型自由配置</h3><p>填写兼容接口、API Key 与模型名称即可使用。可为不同创作阶段选择不同模型，也支持本地推理服务。</p></article>
+          <article class="feature-card reveal reveal-delay-1"><span class="feature-number">05</span><div class="feature-icon"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 4h16v16H4zM8 9h8M8 13h5M8 17h3"/></svg></div><h3>可审阅的智能体修改</h3><p>智能体不会静默覆盖正文。修改以差异与建议呈现，由你逐项接受或拒绝，重要内容始终可控。</p></article>
+          <article class="feature-card reveal reveal-delay-2"><span class="feature-number">06</span><div class="feature-icon"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M12 3 4 6v6c0 5 8 9 8 9s8-4 8-9V6l-8-3Z"/><path d="m8 12 3 3 5-6"/></svg></div><h3>本地作品与开放格式</h3><p>作品保存在本机，支持 Markdown 等开放格式。没有账号体系，也不需要把作品交给软件开发者。</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section workflow" id="workflow">
+      <div class="container">
+        <div class="section-head reveal"><div><span class="eyebrow">写作流程</span><h2>沿着故事的顺序，<br />一步一步写下去。</h2></div><p>既可以从零开始，也可以导入已有原稿继续创作。每个阶段的结果都会保存，成为下一步的上下文。</p></div>
+        <div class="workflow-grid">
+          <article class="step reveal"><h3>灵感与设定</h3><p>明确题材、受众、语言、篇幅与故事前提。</p></article>
+          <article class="step reveal reveal-delay-1"><h3>人物与世界</h3><p>建立角色动机、关系网络和世界规则。</p></article>
+          <article class="step reveal reveal-delay-2"><h3>章节蓝图</h3><p>逐章规划目标、冲突、转折与悬念钩子。</p></article>
+          <article class="step reveal reveal-delay-3"><h3>正文创作</h3><p>结合前文、人物状态与伏笔任务生成草稿。</p></article>
+          <article class="step reveal reveal-delay-3"><h3>审稿与定稿</h3><p>检查逻辑、修稿、确认变化，再保存为定稿。</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container showcase">
+        <div class="showcase-copy reveal">
+          <span class="eyebrow">写作现场</span>
+          <h2>把注意力留给故事，<br />而不是工具。</h2>
+          <p>左侧管理作品与资料，中间与智能体协作，右侧阅读和编辑正文。当前章节、人物状态、伏笔与技能都围绕同一份创作上下文展开。</p>
+          <ul class="check-list">
+            <li><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>章节蓝图与人物时间线同步</li>
+            <li><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>伏笔到期与逾期自动提醒</li>
+            <li><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>AI 只读检查与修改建议分离</li>
+            <li><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>版本历史与本地导出随时可用</li>
+          </ul>
+        </div>
+        <div class="app-window reveal reveal-delay-1" aria-label="白日梦书屋界面示意">
+          <div class="window-bar"><div class="window-dots"><i></i><i></i><i></i></div><span>白日梦书屋</span><span>本地工作区</span></div>
+          <div class="window-body">
+            <aside class="window-sidebar">
+              <div class="window-logo"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v16H6.5A2.5 2.5 0 0 0 4 21.5zM20 5.5A2.5 2.5 0 0 0 17.5 3H13v16h4.5a2.5 2.5 0 0 1 2.5 2.5z"/></svg>白日梦书屋</div>
+              <div class="window-nav"><span>＋ 新建书籍</span><span class="active">创作空间</span><span>技能库</span><span>素材库</span><span>智能体团队</span></div>
+            </aside>
+            <div class="window-editor">
+              <div class="editor-kicker">第三章 · 雾港来信</div>
+              <div class="editor-title">潮水抵达之前</div>
+              <div class="typing" id="typingText" aria-live="polite"></div>
+              <div class="editor-status"><span>已保存到本地</span><span>连续性检查 · 通过</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="guide">
+      <div class="container">
+        <div class="section-head reveal"><div><span class="eyebrow">快速开始</span><h2>四步，开始你的第一部作品。</h2></div><p>首次使用不需要账号。准备好模型接口后，就可以直接进入创作。</p></div>
+        <div class="guide-grid">
+          <article class="guide-card reveal"><span class="step-no">01</span><h3>选择工作目录</h3><p>安装后选择作品保存位置。路径由当前电脑用户自动生成，也可以随时更改。</p></article>
+          <article class="guide-card reveal reveal-delay-1"><span class="step-no">02</span><h3>配置模型</h3><p>在「设置 → 自定义模型」填写接口地址、API Key 和模型名称，并测试连接。</p></article>
+          <article class="guide-card reveal reveal-delay-2"><span class="step-no">03</span><h3>新建书籍</h3><p>输入创作目标，选择短篇或长篇，让智能体协助完成设定与章节规划。</p></article>
+          <article class="guide-card reveal reveal-delay-3"><span class="step-no">04</span><h3>写作与审阅</h3><p>生成草稿后检查差异，使用审稿、修稿和连续性检查，确认后再定稿。</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-head reveal"><div><span class="eyebrow">作品与版权</span><h2>你的故事，<br />始终由你保管。</h2></div><p>工具提供创作辅助，不改变作品的归属，也不替代作者对内容、事实和版权的判断。</p></div>
+        <div class="privacy">
+          <article class="privacy-card reveal"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M12 3 4 6v6c0 5 8 9 8 9s8-4 8-9V6l-8-3Z"/><path d="m8 12 3 3 5-6"/></svg><h3>本地保存，自行保管</h3><p>创作的作品仅存放于本地工作目录。需要 AI 生成时，相关上下文会发送到你自行配置的模型服务。请勿分享包含 API Key 的配置目录。</p></article>
+          <article class="privacy-card copyright reveal reveal-delay-1"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 4h16v16H4zM8 9h8M8 13h5M8 17h3"/></svg><h3>版权风险，由作者把控</h3><p>网络平台与纸质媒体都面临复杂的版权环境。发布前应审查文字、图片、音频和视频的授权与来源。生成内容与软件开发者无关，开发者不对作品内容承担责任。</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="faq">
+      <div class="container">
+        <div class="section-head reveal"><div><span class="eyebrow">常见问题</span><h2>开始之前，你可能想知道。</h2></div></div>
+        <div class="faq reveal">
+          <details><summary>可以直接调用 AI 自动写作吗？</summary><p>可以。先在「自定义模型」中配置接口地址、API Key 和模型名称，再选择模型即可使用智能体写作、审稿与修稿。没有配置模型时，软件仍可作为本地编辑器使用。</p></details>
+          <details><summary>作品和 API Key 会上传给开发者吗？</summary><p>不会。作品保存在你的本地工作目录，模型密钥保存在当前电脑的用户数据目录。只有发起 AI 请求时，必要内容才会发送给你配置的模型服务。</p></details>
+          <details><summary>换一台电脑安装，会带上原来的路径和数据吗？</summary><p>不会。安装包不包含你的用户名、作品目录、模型密钥或用户配置。首次启动时会根据新电脑的用户目录重新生成默认位置。</p></details>
+          <details><summary>支持哪些模型服务？</summary><p>支持兼容 OpenAI、Anthropic 与 Google 协议的服务，也可配置本地推理接口。具体可用性取决于你选择的服务商和模型。</p></details>
+          <details><summary>适合写长篇小说吗？</summary><p>适合。章节蓝图、人物状态时间线、伏笔到期提醒和连续性账本专为跨章节创作设计，可减少前后矛盾与线索遗漏。</p></details>
+          <details><summary>生成内容可以直接商用或发布吗？</summary><p>需要作者自行核实事实、原创性与素材授权，并遵守对应平台和地区的规则。软件不对生成内容作版权保证。</p></details>
+        </div>
+      </div>
+    </section>
+
+    <section class="download-section">
+      <div class="container">
+        <div class="download-panel reveal">
+          <span class="eyebrow">Windows · x64</span>
+          <h2>下一个故事，从这里开始。</h2>
+          <p>选择本地工作目录，配置你的模型，然后让智能体陪你完成从灵感到定稿的每一步。</p>
+          <button class="button button-primary" type="button" data-open-download>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M5 21h14"/></svg>
+            获取白日梦书屋
+          </button>
+          <div class="download-status"><span class="status-dot"></span><span id="downloadStatusText">分享版本准备中</span></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-row">
+      <div class="footer-brand"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v16H6.5A2.5 2.5 0 0 0 4 21.5zM20 5.5A2.5 2.5 0 0 0 17.5 3H13v16h4.5a2.5 2.5 0 0 1 2.5 2.5z"/></svg>白日梦书屋</div>
+      <div>由 白日梦-浅浅来风 开发制作 · 作品本地保存，生成内容与软件开发者无关</div>
+      <a href="#top">返回顶部 ↑</a>
+    </div>
+  </footer>
+
+  <button class="back-top" id="backTop" type="button" aria-label="返回顶部">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg>
+  </button>
+
+  <dialog id="downloadDialog" aria-labelledby="downloadDialogTitle">
+    <div class="dialog-inner">
+      <div class="dialog-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M5 21h14"/></svg></div>
+      <h2 id="downloadDialogTitle">分享版本准备中</h2>
+      <p>下载地址将在合规分享版本完成后开放。当前页面不会提供包含个人数据或未经授权分发的安装包。</p>
+      <div class="dialog-actions"><button class="button button-secondary" id="closeDownloadDialog" type="button">我知道了</button></div>
+    </div>
+  </dialog>
+
+  <script>
+    (() => {
+      const DOWNLOAD_URL = "";
+      const header = document.getElementById("siteHeader");
+      const backTop = document.getElementById("backTop");
+      const menuButton = document.getElementById("menuButton");
+      const navLinks = document.getElementById("navLinks");
+      const downloadDialog = document.getElementById("downloadDialog");
+      const typingText = document.getElementById("typingText");
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      function onScroll() {
+        header.classList.toggle("is-scrolled", window.scrollY > 18);
+        backTop.classList.toggle("is-visible", window.scrollY > 640);
+      }
+      onScroll();
+      window.addEventListener("scroll", onScroll, { passive: true });
+      backTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: reducedMotion ? "auto" : "smooth" }));
+
+      menuButton.addEventListener("click", () => {
+        const open = navLinks.classList.toggle("is-open");
+        menuButton.setAttribute("aria-expanded", String(open));
+        menuButton.setAttribute("aria-label", open ? "关闭导航菜单" : "打开导航菜单");
+      });
+      navLinks.querySelectorAll("a").forEach((link) => link.addEventListener("click", () => {
+        navLinks.classList.remove("is-open");
+        menuButton.setAttribute("aria-expanded", "false");
+        menuButton.setAttribute("aria-label", "打开导航菜单");
+      }));
+
+      document.querySelectorAll("[data-open-download]").forEach((button) => button.addEventListener("click", () => {
+        if (DOWNLOAD_URL) window.location.href = DOWNLOAD_URL;
+        else downloadDialog.showModal();
+      }));
+      if (DOWNLOAD_URL) document.getElementById("downloadStatusText").textContent = "Windows x64 · v1.9.0";
+      document.getElementById("closeDownloadDialog").addEventListener("click", () => downloadDialog.close());
+      downloadDialog.addEventListener("click", (event) => {
+        if (event.target === downloadDialog) {
+          const rect = downloadDialog.getBoundingClientRect();
+          if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) downloadDialog.close();
+        }
+      });
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.12 });
+      document.querySelectorAll(".reveal").forEach((element) => observer.observe(element));
+
+      const sample = "雾从港口漫上来的时候，林岚终于拆开了那封没有署名的信。\n\n信纸上只有一行字：别在涨潮前回家。\n\n她抬头望向街尽头，远处的钟楼刚刚敲过十一下。潮水抵达之前，她还有足够的时间弄清楚，究竟是谁希望她离开。";
+      if (reducedMotion) {
+        typingText.textContent = sample;
+      } else {
+        let index = 0;
+        let started = false;
+        const typeObserver = new IntersectionObserver((entries) => {
+          if (!started && entries.some((entry) => entry.isIntersecting)) {
+            started = true;
+            typeObserver.disconnect();
+            const timer = window.setInterval(() => {
+              typingText.textContent = sample.slice(0, index++);
+              if (index > sample.length) window.clearInterval(timer);
+            }, 55);
+          }
+        }, { threshold: 0.35 });
+        typeObserver.observe(typingText);
+      }
+    })();
+  </script>
+</body>
+</html>
