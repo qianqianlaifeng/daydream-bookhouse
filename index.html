@@ -4,9 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#f6efe2" />
-  <meta name="description" content="白日梦书屋，一款温暖的 AI 小说创作工作台。让灵感翻页成书。" />
+  <meta name="description" content="白日梦书屋，一款有故事记忆的 AI 长篇小说创作工作台。人物、伏笔与前文持续记录、随时召回，让灵感翻页成书。" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%236f4b3a'/%3E%3Cpath d='M12 18c8-3 15-1 20 4v28c-5-5-12-7-20-4V18Zm40 0c-8-3-15-1-20 4v28c5-5 12-7 20-4V18Z' fill='%23fff8ec'/%3E%3Cpath d='M32 22v28' stroke='%23b96a4b' stroke-width='4'/%3E%3Cpath d='M43 10a8 8 0 1 0 8 11 7 7 0 0 1-8-11Z' fill='%23c99a5b'/%3E%3C/svg%3E" />
-  <title>白日梦书屋 · 让灵感翻页成书</title>
+  <title>白日梦书屋 · 长篇有记忆，让灵感翻页成书</title>
   <style>
     :root {
       --paper: #f6efe2;
@@ -325,6 +325,50 @@
     .round-btn:hover { background: var(--cocoa); color: var(--cream); }
     .round-btn:disabled { opacity: .28; cursor: not-allowed; }
 
+    .memory-grid { display: grid; grid-template-columns: .82fr 1.18fr; gap: 84px; align-items: center; }
+    .memory-copy .chapter-title { max-width: 540px; }
+    .memory-copy .lead { max-width: 500px; }
+    .memory-points { display: grid; gap: 18px; margin: 32px 0 0; padding: 0; list-style: none; }
+    .memory-points li { display: grid; grid-template-columns: 38px 1fr; gap: 14px; align-items: start; }
+    .memory-points .point-mark { display: grid; place-items: center; width: 38px; height: 38px; border: 1px solid var(--line-strong); border-radius: 50%; color: var(--terracotta); background: rgba(251,246,236,.5); }
+    .memory-points strong { display: block; font-family: var(--serif); font-size: 17px; font-weight: 600; }
+    .memory-points p { margin: 3px 0 0; color: var(--muted); font-size: 13px; line-height: 1.8; }
+    .memory-demo {
+      position: relative;
+      min-height: 520px;
+      padding: 30px;
+      overflow: hidden;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--paper-light), #f0e2ca);
+      box-shadow: 18px 22px 0 var(--paper-deep), 20px 24px 0 var(--line);
+    }
+    .memory-demo::before { content: ""; position: absolute; left: 62px; top: 0; bottom: 0; width: 1px; background: rgba(185,106,75,.12); pointer-events: none; }
+    .memory-demo-head { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-bottom: 22px; border-bottom: 1px solid var(--line); }
+    .memory-demo-title { display: flex; align-items: center; gap: 11px; font-family: var(--serif); font-size: 19px; font-weight: 600; }
+    .memory-demo-title svg { color: var(--terracotta); }
+    .memory-live { display: inline-flex; align-items: center; gap: 7px; padding: 6px 10px; border: 1px solid rgba(102,117,90,.22); border-radius: 999px; background: rgba(102,117,90,.08); color: var(--sage); font-size: 10px; white-space: nowrap; }
+    .memory-live i { width: 5px; height: 5px; border-radius: 50%; background: var(--sage); box-shadow: 0 0 0 4px rgba(102,117,90,.09); }
+    .memory-tabs { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 22px; }
+    .memory-tab { min-height: 44px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 4px; background: transparent; color: var(--muted); font-family: var(--serif); font-size: 13px; cursor: pointer; transition: color 180ms ease, background 180ms ease, border-color 180ms ease, transform 180ms ease; }
+    .memory-tab:hover { border-color: var(--line-strong); transform: translateY(-1px); }
+    .memory-tab.is-active { border-color: var(--cocoa); background: var(--cocoa); color: var(--cream); }
+    .memory-question { position: relative; margin: 22px 0 14px; color: var(--faint); font-size: 10px; font-weight: 800; letter-spacing: .18em; }
+    .memory-recall { position: relative; min-height: 236px; padding: 24px; border: 1px solid var(--line); border-left: 3px solid var(--terracotta); border-radius: 4px; background: rgba(251,246,236,.82); transition: opacity 220ms ease, transform 300ms var(--ease); }
+    .memory-recall.is-changing { opacity: 0; transform: translateY(8px); }
+    .memory-recall-label { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--terracotta); font-size: 10px; font-weight: 800; letter-spacing: .14em; }
+    .memory-recall-label span:last-child { color: var(--faint); font-weight: 500; letter-spacing: .04em; }
+    .memory-recall h3 { margin: 14px 0 10px; font-family: var(--serif); font-size: 24px; font-weight: 600; line-height: 1.4; }
+    .memory-recall p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.85; }
+    .memory-sources { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+    .memory-sources span { padding: 5px 9px; border: 1px solid var(--line); border-radius: 999px; background: var(--paper-warm); color: var(--ink-soft); font-size: 10px; }
+    .memory-flow { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 22px; }
+    .memory-flow span { position: relative; padding-top: 13px; color: var(--muted); font-size: 10px; text-align: center; }
+    .memory-flow span::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--line-strong); }
+    .memory-flow span:first-child::before { background: var(--terracotta); }
+    .memory-flow span:not(:last-child)::after { content: "›"; position: absolute; top: 7px; right: -4px; z-index: 1; color: var(--faint); background: #f0e2ca; font-size: 14px; line-height: 1; }
+    .memory-footnote { position: relative; margin: 16px 0 0; color: var(--faint); font-size: 10px; text-align: right; }
+
     .workflow-grid { display: grid; grid-template-columns: .86fr 1.14fr; gap: 84px; align-items: center; }
     .workflow-list { border-top: 1px solid var(--line); }
     .workflow-item { display: grid; grid-template-columns: 54px 1fr 24px; gap: 16px; align-items: start; width: 100%; padding: 22px 0; border: 0; border-bottom: 1px solid var(--line); background: transparent; text-align: left; cursor: pointer; }
@@ -412,7 +456,7 @@
       .book-scene { min-height: 520px; }
       .book { width: 390px; height: 290px; }
       .feature-leaf { flex-basis: calc((100% - 26px) / 1.7); }
-      .workflow-grid, .guide-layout { gap: 44px; }
+      .workflow-grid, .guide-layout, .memory-grid { gap: 44px; }
     }
     @media (max-width: 820px) {
       html { scroll-snap-type: none; }
@@ -423,7 +467,7 @@
       .menu-toggle { display: grid; }
       .chapter { min-height: auto; padding: 108px 0 76px; }
       .chapter-number { left: 10px; }
-      .hero-grid, .workflow-grid, .guide-layout, .privacy-grid { grid-template-columns: 1fr; }
+      .hero-grid, .workflow-grid, .guide-layout, .privacy-grid, .memory-grid { grid-template-columns: 1fr; }
       .hero-copy { order: 2; }
       .book-scene { order: 1; min-height: 450px; }
       .hero-copy h1 { font-size: clamp(48px, 11vw, 72px); }
@@ -460,6 +504,15 @@
       .preview-page { padding: 38px 30px; }
       .preview-page h3 { font-size: 29px; }
       .workflow-preview { min-height: 400px; }
+      .memory-demo { min-height: auto; padding: 22px 18px; box-shadow: 10px 14px 0 var(--paper-deep), 12px 16px 0 var(--line); }
+      .memory-demo::before { left: 39px; }
+      .memory-demo-head { align-items: flex-start; }
+      .memory-demo-title { font-size: 17px; }
+      .memory-live { padding: 5px 8px; font-size: 9px; }
+      .memory-recall { min-height: 250px; padding: 20px 18px; }
+      .memory-recall h3 { font-size: 21px; }
+      .memory-flow { gap: 4px; }
+      .memory-flow span { font-size: 9px; }
       .guide-panel { padding: 34px 28px; }
       .guide-panel h3 { font-size: 28px; }
       .download-hash { font-size: 8px; }
@@ -483,9 +536,10 @@
       </a>
       <div class="nav-links" id="navLinks">
         <a href="#features" data-no="01">写作能力</a>
-        <a href="#workflow" data-no="02">创作流程</a>
-        <a href="#guide" data-no="03">使用教程</a>
-        <a href="#privacy" data-no="04">作品与版权</a>
+        <a href="#memory" data-no="02">长篇记忆</a>
+        <a href="#workflow" data-no="03">创作流程</a>
+        <a href="#guide" data-no="04">使用教程</a>
+        <a href="#privacy" data-no="05">作品与版权</a>
       </div>
       <a class="nav-download" href="https://github.com/qianqianlaifeng/daydream-bookhouse/releases/download/v1.9.0/Daydream-Book-House-1.9.0-win-x64.exe">
         下载软件
@@ -504,15 +558,15 @@
         <div class="hero-copy">
           <div class="eyebrow reveal">一间为故事留灯的书屋</div>
           <h1 class="reveal delay-1">让灵感<br /><span>翻页成书。</span></h1>
-          <p class="lead reveal delay-2">从一句模糊的想法，到设定、章节蓝图、正文、审稿与修稿。白日梦书屋把 AI 智能体、长篇连续性账本和写作技能，装进一本温暖的书，陪你慢慢写下去。</p>
+          <p class="lead reveal delay-2">从一句模糊的想法，到设定、章节蓝图、正文、审稿与修稿。白日梦书屋把 AI 智能体、<strong>会召回前文的故事记忆</strong>和写作技能，装进一本温暖的书，陪你慢慢写下去。</p>
           <div class="hero-actions reveal delay-3">
             <a class="btn btn-primary" href="https://github.com/qianqianlaifeng/daydream-bookhouse/releases/download/v1.9.0/Daydream-Book-House-1.9.0-win-x64.exe">
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M5 21h14"/></svg>
               <span>下载 Windows 版</span>
             </a>
-            <a class="btn btn-ghost" href="#guide"><span>翻开使用教程</span><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a>
+            <a class="btn btn-ghost" href="#memory"><span>看看长篇记忆</span><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a>
           </div>
-          <div class="hero-meta reveal delay-3"><span><i></i>无需登录注册</span><span><i></i>作品仅存本地</span><span><i></i>模型由你配置</span></div>
+          <div class="hero-meta reveal delay-3"><span><i></i>长篇记忆持续召回</span><span><i></i>无需登录注册</span><span><i></i>作品仅存本地</span><span><i></i>模型由你配置</span></div>
         </div>
 
         <div class="book-scene reveal from-right delay-2" aria-label="暖灯下不断翻页的立体书本动画">
@@ -534,9 +588,9 @@
           </div>
           <div class="book-stack"><i></i><i></i><i></i></div>
           <div class="tea"><div class="steam"><i></i><i></i><i></i></div><div class="cup"></div><div class="handle"></div></div>
-          <div class="margin-note note-a"><small>CONTINUITY</small>人物状态已同步</div>
+          <div class="margin-note note-a"><small>STORY MEMORY</small>前文关键信息已记住</div>
           <div class="margin-note note-b"><small>FORESHADOWING</small>本章 2 条伏笔待推进</div>
-          <div class="margin-note note-c"><small>WRITING SKILL</small>自然语言润色</div>
+          <div class="margin-note note-c"><small>WRITING SKILL</small>接住前文自然润色</div>
         </div>
       </div>
     </section>
@@ -552,7 +606,7 @@
         <div class="slider-shell reveal from-page delay-1">
           <div class="feature-track" id="featureTrack" aria-label="功能滑页">
             <article class="feature-leaf"><span class="leaf-no">01 / STORY</span><svg class="leaf-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M4 19V5a2 2 0 0 1 2-2h13v18H6a2 2 0 0 1-2-2Zm0 0a2 2 0 0 1 2-2h13M8 7h7M8 11h5"/></svg><h3>从设定<br />到定稿</h3><p>故事前提、世界观、人物、章节蓝图、正文、审稿与修稿形成完整流程，不必在多个工具之间来回切换。</p></article>
-            <article class="feature-leaf"><span class="leaf-no">02 / CONTINUITY</span><svg class="leaf-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><h3>长篇连续性<br />账本</h3><p>人物状态按章取值，伏笔按到期章节提醒，时间线与关系变化有据可查，减少越写越矛盾的问题。</p></article>
+            <article class="feature-leaf"><span class="leaf-no">02 / STORY MEMORY</span><svg class="leaf-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M9 4h6a3 3 0 0 1 3 3v14l-6-3-6 3V7a3 3 0 0 1 3-3Z"/><path d="M12 8v5M12 16h.01"/></svg><h3>故事记忆<br />前文随时召回</h3><p>持续记住人物状态、关键约定、伏笔与时间线。每次续写先召回相关前文，再接着往下写，长篇越写越连贯。</p></article>
             <article class="feature-leaf"><span class="leaf-no">03 / SKILLS</span><svg class="leaf-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="m12 3 2.2 6.8H21l-5.5 4 2.1 6.7-5.6-4-5.6 4 2.1-6.7-5.5-4h6.8L12 3Z"/></svg><h3>统一技能<br />中心</h3><p>内置写作技能、智能体、子智能体与导入的 SKILL.md 集中管理，按规划、写稿、审稿和修稿阶段调用。</p></article>
             <article class="feature-leaf"><span class="leaf-no">04 / MODELS</span><svg class="leaf-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/><circle cx="18" cy="17" r="2"/></svg><h3>模型自由<br />配置</h3><p>填写兼容接口、API Key 与模型名称即可使用。可为不同创作阶段选择不同模型，也支持本地推理服务。</p></article>
             <article class="feature-leaf"><span class="leaf-no">05 / REVIEW</span><svg class="leaf-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M4 4h16v16H4zM8 9h8M8 13h5M8 17h3"/></svg><h3>可审阅的<br />智能体修改</h3><p>智能体不会静默覆盖正文。修改以差异与建议呈现，由你逐项接受或拒绝，重要内容始终可控。</p></article>
@@ -571,8 +625,45 @@
       </div>
     </section>
 
+    <section class="chapter" id="memory">
+      <span class="chapter-number"><b>第二章</b> · STORY MEMORY</span>
+      <div class="wrap memory-grid">
+        <div class="memory-copy reveal from-left">
+          <div class="eyebrow">长篇记忆</div>
+          <h2 class="chapter-title">写到第 80 章，<br /><em>仍记得第 1 章。</em></h2>
+          <p class="lead">故事记忆持续整理人物、约定、伏笔、时间线与关系变化。每次续写先找回相关前文，再让情节自然向前，不靠碰巧记得，也不靠你反复提醒。</p>
+          <ul class="memory-points">
+            <li><span class="point-mark"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></span><div><strong>关键信息自动留下</strong><p>人物说过什么、做过什么，重要道具与约定按章节归档。</p></div></li>
+            <li><span class="point-mark"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m16 16 4 4"/></svg></span><div><strong>续写之前主动召回</strong><p>从故事记忆里找回与当前章节有关的前文，而不是只盯着最近几段。</p></div></li>
+            <li><span class="point-mark"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 7h11M4 12h8M4 17h5M17 15l3 3-3 3"/></svg></span><div><strong>写完之后继续更新</strong><p>新的状态、关系与伏笔变化回流到记忆，下一章接着使用。</p></div></li>
+          </ul>
+        </div>
+
+        <div class="memory-demo reveal from-right delay-1" aria-label="跨章节故事记忆召回功能示意">
+          <div class="memory-demo-head">
+            <div class="memory-demo-title"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M9 4h6a3 3 0 0 1 3 3v14l-6-3-6 3V7a3 3 0 0 1 3-3Z"/><path d="M12 8v5M12 16h.01"/></svg>故事记忆 · 自动召回</div>
+            <span class="memory-live"><i></i><span id="memoryCount">已记住 3 条关键信息</span></span>
+          </div>
+          <div class="memory-tabs" aria-label="选择要续写的章节">
+            <button class="memory-tab" type="button" data-chapter="1" aria-pressed="false">第 1 章</button>
+            <button class="memory-tab is-active" type="button" data-chapter="37" aria-pressed="true">第 37 章</button>
+            <button class="memory-tab" type="button" data-chapter="80" aria-pressed="false">第 80 章</button>
+          </div>
+          <div class="memory-question" id="memoryQuestion">本章要续写：她为什么必须回到旧屋？</div>
+          <div class="memory-recall" id="memoryRecall" aria-live="polite">
+            <div class="memory-recall-label"><span id="memoryLabel">从前文召回</span><span id="memoryChapter">第 37 章</span></div>
+            <h3 id="memoryTitle">那枚戒指，不只是一件旧物。</h3>
+            <p id="memoryBody">第 1 章留下“找到真相就回来取戒指”的约定；第 18 章发现戒指内侧刻着父亲的名字；第 37 章，旧屋地址成为唯一线索。林溪必须回去，因为前文早已把她的选择一步步推到这里。</p>
+            <div class="memory-sources" id="memorySources"><span>第 1 章 · 留下戒指</span><span>第 18 章 · 发现刻字</span><span>第 37 章 · 旧屋线索</span></div>
+          </div>
+          <div class="memory-flow" aria-label="故事记忆工作流程"><span>记住</span><span>召回</span><span>续写</span><span>更新</span></div>
+          <p class="memory-footnote">交互功能示意 · 展示记忆如何参与长篇续写</p>
+        </div>
+      </div>
+    </section>
+
     <section class="chapter" id="workflow">
-      <span class="chapter-number"><b>第二章</b> · WORKFLOW</span>
+      <span class="chapter-number"><b>第三章</b> · WORKFLOW</span>
       <div class="wrap workflow-grid">
         <div class="reveal from-left">
           <div class="eyebrow">创作流程</div>
@@ -582,7 +673,7 @@
             <button class="workflow-item is-active" type="button" data-step="0"><span class="no">01</span><span><h3>灵感与设定</h3><p>明确题材、受众、语言、篇幅与故事前提。</p></span><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
             <button class="workflow-item" type="button" data-step="1"><span class="no">02</span><span><h3>人物与世界</h3><p>建立角色动机、关系网络和世界规则。</p></span><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
             <button class="workflow-item" type="button" data-step="2"><span class="no">03</span><span><h3>章节蓝图</h3><p>逐章规划目标、冲突、转折与悬念钩子。</p></span><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
-            <button class="workflow-item" type="button" data-step="3"><span class="no">04</span><span><h3>正文创作</h3><p>结合前文、人物状态与伏笔任务生成草稿。</p></span><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
+            <button class="workflow-item" type="button" data-step="3"><span class="no">04</span><span><h3>正文创作</h3><p>先从故事记忆召回相关前文，再结合人物状态与伏笔任务生成草稿。</p></span><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
             <button class="workflow-item" type="button" data-step="4"><span class="no">05</span><span><h3>审稿与定稿</h3><p>检查逻辑、修稿、确认变化，再保存为定稿。</p></span><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
           </div>
         </div>
@@ -599,7 +690,7 @@
     </section>
 
     <section class="chapter" id="guide">
-      <span class="chapter-number"><b>第三章</b> · QUICK START</span>
+      <span class="chapter-number"><b>第四章</b> · QUICK START</span>
       <div class="wrap guide-layout">
         <div class="reveal from-left">
           <div class="eyebrow">快速开始</div>
@@ -622,7 +713,7 @@
     </section>
 
     <section class="chapter" id="privacy">
-      <span class="chapter-number"><b>第四章</b> · OWNERSHIP</span>
+      <span class="chapter-number"><b>第五章</b> · OWNERSHIP</span>
       <div class="wrap privacy-grid">
         <div class="privacy-copy reveal from-left">
           <div class="eyebrow">作品与版权</div>
@@ -632,6 +723,7 @@
         </div>
         <div class="faq reveal from-right delay-1">
           <details open><summary>可以直接调用 AI 自动写作吗？</summary><p>可以。先在「自定义模型」中配置接口地址、API Key 和模型名称，再选择模型即可使用智能体写作、审稿与修稿。没有配置模型时，软件仍可作为本地编辑器使用。</p></details>
+          <details><summary>长篇小说写到后面，还记得前面吗？</summary><p>会调用故事记忆，而不是只靠聊天窗口里的最近几段。人物状态、关键约定、伏笔、时间线与关系变化会持续整理；续写时先召回相关前文，再把新变化写回记忆。记忆能帮助保持连贯，重要情节仍建议由作者审阅确认。</p></details>
           <details><summary>作品和 API Key 会上传吗？</summary><p>作品保存在本地工作目录，模型密钥保存在当前电脑的用户数据目录。只有发起 AI 请求时，必要内容才会发送给你配置的模型服务。</p></details>
           <details><summary>换电脑会带走原来的数据吗？</summary><p>不会。安装包不包含你的用户名、作品目录、模型密钥或用户配置。首次启动时会根据新电脑重新生成默认位置。</p></details>
           <details><summary>支持哪些模型服务？</summary><p>支持兼容 OpenAI、Anthropic 与 Google 协议的服务，也可配置本地推理接口。具体可用性取决于你选择的服务商和模型。</p></details>
@@ -646,9 +738,9 @@
         <div class="download-mark"><svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v16H6.5A2.5 2.5 0 0 0 4 21.5zM20 5.5A2.5 2.5 0 0 0 17.5 3H13v16h4.5a2.5 2.5 0 0 1 2.5 2.5z"/></svg></div>
         <div class="eyebrow" style="justify-content:center">Windows · x64 · v1.9.0</div>
         <h2>下一个故事，<br />从这里翻页。</h2>
-        <p>选择本地工作目录，配置你的模型，然后让智能体陪你完成从灵感到定稿的每一步。</p>
+        <p>选择本地工作目录，配置你的模型。让故事记忆替你留住前文，陪你把一部长篇小说，从第一章写到最后一章。</p>
         <a class="btn" href="https://github.com/qianqianlaifeng/daydream-bookhouse/releases/download/v1.9.0/Daydream-Book-House-1.9.0-win-x64.exe"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M5 21h14"/></svg><span>获取白日梦书屋</span></a>
-        <div class="download-info"><span>约 100 MB</span><span>无需登录注册</span><span>作品仅存本地</span></div>
+        <div class="download-info"><span>约 100 MB</span><span>长篇故事记忆</span><span>无需登录注册</span><span>作品仅存本地</span></div>
         <div class="download-hash">SHA-256 · 请以 GitHub Release 页面校验值为准</div>
       </div>
     </section>
@@ -750,11 +842,68 @@
       addEventListener("resize", () => renderSlider(false));
       renderSlider(false);
 
+      const memoryData = {
+        1: {
+          count: "已记住 1 条关键信息",
+          question: "本章要写下：一个会影响后续的约定",
+          label: "新记忆已记录",
+          chapter: "第 1 章",
+          title: "找到真相，就回来取戒指。",
+          body: "林溪离开旧屋时，把母亲的铜戒指留在抽屉里。她答应父亲：找到失踪的真相，就回来取。人物、道具与约定，同时写进故事记忆。",
+          sources: ["第 1 章 · 留下戒指", "第 1 章 · 立下约定"]
+        },
+        37: {
+          count: "已记住 3 条关键信息",
+          question: "本章要续写：她为什么必须回到旧屋？",
+          label: "从前文召回",
+          chapter: "第 37 章",
+          title: "那枚戒指，不只是一件旧物。",
+          body: "第 1 章留下“找到真相就回来取戒指”的约定；第 18 章发现戒指内侧刻着父亲的名字；第 37 章，旧屋地址成为唯一线索。林溪必须回去，因为前文早已把她的选择一步步推到这里。",
+          sources: ["第 1 章 · 留下戒指", "第 18 章 · 发现刻字", "第 37 章 · 旧屋线索"]
+        },
+        80: {
+          count: "已记住 4 条关键信息",
+          question: "本章要揭晓：父亲当年究竟去了哪里？",
+          label: "跨章线索已串联",
+          chapter: "第 80 章",
+          title: "散落的前文，终于指向同一个答案。",
+          body: "第 1 章的戒指、第 18 章的刻字与第 63 章的来信连成同一条线。林溪终于明白，父亲当年并没有离开，而是替她守住了旧屋的秘密。故事记忆让跨越八十章的伏笔，在揭晓时仍然接得上。",
+          sources: ["第 1 章 · 留下戒指", "第 18 章 · 发现刻字", "第 63 章 · 父亲来信", "第 80 章 · 揭晓真相"]
+        }
+      };
+      const memoryTabs = [...document.querySelectorAll(".memory-tab")];
+      const memoryRecall = document.getElementById("memoryRecall");
+      memoryTabs.forEach((tab) => tab.addEventListener("click", () => {
+        if (tab.classList.contains("is-active")) return;
+        const data = memoryData[tab.dataset.chapter];
+        memoryTabs.forEach((entry) => {
+          const active = entry === tab;
+          entry.classList.toggle("is-active", active);
+          entry.setAttribute("aria-pressed", String(active));
+        });
+        memoryRecall.classList.add("is-changing");
+        setTimeout(() => {
+          document.getElementById("memoryCount").textContent = data.count;
+          document.getElementById("memoryQuestion").textContent = data.question;
+          document.getElementById("memoryLabel").textContent = data.label;
+          document.getElementById("memoryChapter").textContent = data.chapter;
+          document.getElementById("memoryTitle").textContent = data.title;
+          document.getElementById("memoryBody").textContent = data.body;
+          const sources = document.getElementById("memorySources");
+          sources.replaceChildren(...data.sources.map((source) => {
+            const span = document.createElement("span");
+            span.textContent = source;
+            return span;
+          }));
+          memoryRecall.classList.remove("is-changing");
+        }, reduced ? 0 : 180);
+      }));
+
       const workflowData = [
         ["STAGE 01 · FOUNDATION", "先把故事立起来", "从创作目标出发，确定这本书要写给谁、讲什么、用什么语气。先建立故事前提，再让世界观与人物围绕同一个核心冲突生长。"],
         ["STAGE 02 · CHARACTERS", "让人物拥有命运", "为重要角色写清处境、欲望、恐惧、缺陷、秘密与关系张力。人物的选择会推动情节，而不是只负责解释设定。"],
         ["STAGE 03 · BLUEPRINT", "给每一章一张航线", "逐章规划主角目标、阻力、转折、信息投放与结尾钩子。写作之前先知道这一章要改变什么。"],
-        ["STAGE 04 · MANUSCRIPT", "把故事写到纸上", "结合前文、人物状态与伏笔任务生成草稿。智能体的每次修改都以差异呈现，由你决定接受还是拒绝。"],
+        ["STAGE 04 · MANUSCRIPT", "把故事写到纸上", "先从故事记忆召回相关前文，再结合人物状态与伏笔任务生成草稿。智能体的每次修改都以差异呈现，由你决定接受还是拒绝。"],
         ["STAGE 05 · FINALIZE", "确认改变，再定稿", "检查逻辑、修稿、核对连续性，确认内容后再定稿。版本历史与本地导出始终可用。"]
       ];
       const workflowPage = document.getElementById("workflowPage");
